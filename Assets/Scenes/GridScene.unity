@@ -332,10 +332,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridMaterials:
   - {fileID: 2100000, guid: 4dc2859b0827d6a4c8a2b9bb366ea937, type: 2}
+  - {fileID: 2100000, guid: 8bb3b90cde0876841a52e74e193dfa26, type: 2}
   - {fileID: 2100000, guid: 1bdb9afc90a53e6499b4c1359b1ae143, type: 2}
-  - {fileID: 2100000, guid: c89f747060c3231468ced9bcebee8712, type: 2}
   - {fileID: 2100000, guid: 3297e7b87fcd8984693fdfecc9cdd5b5, type: 2}
   - {fileID: 2100000, guid: a01d3395c01b5f74f88f5d6f07c73ed6, type: 2}
+  tileCoordinates: {x: 0, y: 0, z: 0}
 --- !u!4 &1833136341
 Transform:
   m_ObjectHideFlags: 0

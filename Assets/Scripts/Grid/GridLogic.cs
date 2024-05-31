@@ -59,7 +59,7 @@ namespace Grid
             Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, 0), GetWorldPosition(dimensions.x, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
         }
 
-        private void CheckNeighbourTiles(int x, int y, int z)
+        public void CheckNeighbourTiles(int x, int y, int z)
         {
             GridTile baseTile = gridTiles[x, y, z];
             GridTile targetTile;

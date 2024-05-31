@@ -20,6 +20,12 @@ public class GridManager : MonoBehaviour
     private Vector3Int gridSize = new Vector3Int(100, 100, 10);
     private float tileSize = 1f;
 
+    [Header("Debug")]
+    [SerializeField]
+    private Vector3Int tileCoordinates;
+    [SerializeField]
+    private bool changeTileType;
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -37,6 +43,19 @@ public class GridManager : MonoBehaviour
 
         CreateGrid();
         Debug.Log(gridLogic.GetTile(new Vector3Int(4, 1, 0)).WorldPosition);
+    }
+
+    private void Update()
+    {
+        if(changeTileType)
+        {
+            changeTileType = false;
+            GridTile tile = gridLogic.GetTile(tileCoordinates);
+            //TO DO: remake the mesh of the neighbours
+            gridLogic.CheckNeighbourTiles(tileCoordinates.x, tileCoordinates.y, tileCoordinates.z);
+            Destroy(tile.GetTileGameObject());
+            CreateTileMesh(tileCoordinates.x, tileCoordinates.y, tileCoordinates.z, tile, 1f, gridMaterials[2]);
+        }
     }
 
     private void CreateGrid()

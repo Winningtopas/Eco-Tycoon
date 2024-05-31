@@ -1,0 +1,84 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Grid;
+
+public class GridTile
+{
+    public enum BlockType { EMPTY, NORMAL, WATER, LAVA, SWAMP, HIGHLIGHT };
+
+    private Vector3Int position;
+    private Vector3Int worldPosition;
+    private BlockType type;
+    private Material material;
+
+    private List<GridTile> neighbours = new List<GridTile>();
+
+    private GameObject tileGameObject;
+    private GameObject entityPrefab;
+
+    public Vector3Int Position => position;
+    public Vector3Int WorldPosition => worldPosition;
+    public List<GridTile> Neighbours => neighbours;
+    public BlockType Type => type;
+
+    public GridTile(Vector3Int position, float cellSize, BlockType type)
+    {
+        worldPosition = new Vector3Int((int)Mathf.Floor(position.x * cellSize), (int)Mathf.Floor(position.y * cellSize));
+        this.position = position;
+        this.type = type;
+    }
+
+    public void AddNeighbours(GridTile tile)
+    {
+        if (neighbours.Contains(tile))
+            return;
+
+        neighbours.Add(tile);
+    }
+
+    public void RemoveNeighbours(GridTile tile)
+    {
+        if (neighbours.Contains(tile))
+            neighbours.Remove(tile);
+    } 
+
+    public void RemoveTile()
+    {
+        type = BlockType.EMPTY;
+        foreach (GridTile tile in neighbours)
+        {
+            tile.RemoveNeighbours(this);
+            RemoveNeighbours(tile);
+        }
+    }
+
+    public void SetTileGameObject(GameObject gameObject)
+    {
+        this.tileGameObject = gameObject;
+    }
+
+    public GameObject GetTileGameObject()
+    {
+        return this.tileGameObject;
+    }
+
+    public GameObject GetEntityPrefab()
+    {
+        return this.entityPrefab;
+    }
+
+    public void SetEntityPrefab(GameObject prefab, float cellSize)
+    {
+        this.entityPrefab = prefab;
+        prefab.transform.position = new Vector3(position.x * cellSize + cellSize * .5f, position.y * cellSize + cellSize * .5f, prefab.transform.position.z);
+    }
+
+    public void ChangeType(BlockType type, Material material)
+    {
+        this.type = type;
+        this.material = material;
+        this.material.color = Color.blue;
+        tileGameObject.GetComponent<MeshRenderer>().material = material;
+    }
+}

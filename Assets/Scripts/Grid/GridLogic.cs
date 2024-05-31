@@ -31,11 +31,32 @@ namespace Grid
                 {
                     for (int z = 0; z < dimensions.z; z++)
                     {
-                        gridTiles[x, y, z] = new GridTile(new Vector3Int(x, y, z), tileSize, GridTile.BlockType.NORMAL);
+                        GridTile.BlockType type = z < dimensions.z - 1 ? GridTile.BlockType.EMPTY : type = GridTile.BlockType.NORMAL;
+
+                        gridTiles[x, y, z] = new GridTile(new Vector3Int(x, y, z), tileSize, type);
                         CheckNeighbourTiles(x, y, z);
                     }
                 }
             }
+            DrawBoundingBox();
+       }
+
+        private void DrawBoundingBox()
+        {
+            Debug.DrawLine(GetWorldPosition(0, 0, 0), GetWorldPosition(dimensions.x, 0, 0), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(0, 0, 0), GetWorldPosition(0, dimensions.y, 0), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, 0), GetWorldPosition(dimensions.x, 0, 0), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, 0), GetWorldPosition(0, dimensions.y, 0), Color.white, Mathf.Infinity);
+
+            Debug.DrawLine(GetWorldPosition(0, 0, dimensions.z), GetWorldPosition(dimensions.x, 0, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(0, 0, dimensions.z), GetWorldPosition(0, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, dimensions.z), GetWorldPosition(dimensions.x, 0, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, dimensions.z), GetWorldPosition(0, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
+
+            Debug.DrawLine(GetWorldPosition(0, 0, 0), GetWorldPosition(0, 0, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, 0, 0), GetWorldPosition(dimensions.x, 0, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(0, dimensions.y, 0), GetWorldPosition(0, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
+            Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, 0), GetWorldPosition(dimensions.x, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
         }
 
         private void CheckNeighbourTiles(int x, int y, int z)

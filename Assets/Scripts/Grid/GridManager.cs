@@ -33,7 +33,7 @@ public class GridManager : MonoBehaviour
     {
         gridParent = new GameObject("GridParent");
         gridParent.transform.parent = transform;
-        gridParent.transform.position = Vector3.one;
+        gridParent.transform.position = Vector3.zero;
 
         CreateGrid();
         Debug.Log(gridLogic.GetTile(new Vector3Int(4, 1, 0)).WorldPosition);
@@ -52,7 +52,7 @@ public class GridManager : MonoBehaviour
                     GridTile tile = gridLogic.GetTile(new Vector3Int(x, y, z));
 
                     // if the tiles have 6 neighbours they can't be seen, so they shouldn't have a mesh
-                    if (tile.Neighbours.Count < 6)
+                    if (tile.Neighbours.Count < 6 && tile.Type != GridTile.BlockType.EMPTY)
                         CreateTileMesh(x, y, z, tile, tileSize, gridMaterials[1]);
                 }
             }

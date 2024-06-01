@@ -20,6 +20,12 @@ public class GridManager : MonoBehaviour
     private Vector3Int gridSize = new Vector3Int(100, 100, 10);
     private float tileSize = 1f;
 
+    // Mouse selection
+    [SerializeField]
+    private Camera mainCamera;
+    private RaycastHit hit;
+    private PointerEventData pointerEventData;
+
     [Header("Debug")]
     [SerializeField]
     private Vector3Int tileCoordinates;
@@ -42,12 +48,24 @@ public class GridManager : MonoBehaviour
         gridParent.transform.position = Vector3.zero;
 
         CreateGrid();
-        Debug.Log(gridLogic.GetTile(new Vector3Int(4, 1, 0)).WorldPosition);
     }
 
     private void Update()
     {
-        if(changeTileType)
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector2 mousePosition = Input.mousePosition;
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red, 100f);
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                // TO DO: this doesn't work atm, because the grid doesnt have colliders. TO DO: think of a solution without adding colliders to every tile
+                Debug.Log(hit.point);                
+            }
+        }
+
+        if (changeTileType)
         {
             changeTileType = false;
             GridTile tile = gridLogic.GetTile(tileCoordinates);

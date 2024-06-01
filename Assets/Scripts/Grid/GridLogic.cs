@@ -31,10 +31,10 @@ namespace Grid
                 {
                     for (int z = 0; z < dimensions.z; z++)
                     {
-                        GridTile.BlockType type = z < dimensions.z - 1 ? GridTile.BlockType.EMPTY : type = GridTile.BlockType.NORMAL;
+                        GridTile.BlockType type = z < dimensions.z - 5 ? GridTile.BlockType.EMPTY : type = GridTile.BlockType.NORMAL;
 
                         gridTiles[x, y, z] = new GridTile(new Vector3Int(x, y, z), tileSize, type);
-                        CheckNeighbourTiles(x, y, z);
+                        CheckNeighbourTiles(x, y, z, false);
                     }
                 }
             }
@@ -59,7 +59,8 @@ namespace Grid
             Debug.DrawLine(GetWorldPosition(dimensions.x, dimensions.y, 0), GetWorldPosition(dimensions.x, dimensions.y, dimensions.z), Color.white, Mathf.Infinity);
         }
 
-        public void CheckNeighbourTiles(int x, int y, int z)
+        //Upon initial creation I know the order of the tile generation, with that knowledge only half the neighbours need to be searched.
+        public void CheckNeighbourTiles(int x, int y, int z, bool fullSearch)
         {
             GridTile baseTile = gridTiles[x, y, z];
             GridTile targetTile;
@@ -67,7 +68,7 @@ namespace Grid
             if (baseTile.Type == GridTile.BlockType.EMPTY)
                 return;
 
-            if (x > 0)
+            if (x > 0 && x < dimensions.x)
             {
                 targetTile = gridTiles[x - 1, y, z];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
@@ -75,8 +76,17 @@ namespace Grid
                     baseTile.AddNeighbours(targetTile);
                     targetTile.AddNeighbours(baseTile);
                 }
+                if (fullSearch)
+                {
+                    targetTile = gridTiles[x + 1, y, z];
+                    if (targetTile.Type != GridTile.BlockType.EMPTY)
+                    {
+                        baseTile.AddNeighbours(targetTile);
+                        targetTile.AddNeighbours(baseTile);
+                    }
+                }
             }
-            if (y > 0)
+            if (y > 0 && y < dimensions.y)
             {
                 targetTile = gridTiles[x, y - 1, z];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
@@ -84,14 +94,32 @@ namespace Grid
                     baseTile.AddNeighbours(targetTile);
                     targetTile.AddNeighbours(baseTile);
                 }
+                if(fullSearch)
+                {
+                    targetTile = gridTiles[x, y + 1, z];
+                    if (targetTile.Type != GridTile.BlockType.EMPTY)
+                    {
+                        baseTile.AddNeighbours(targetTile);
+                        targetTile.AddNeighbours(baseTile);
+                    }
+                }
             }
-            if (z > 0)
+            if (z > 0 && z < dimensions.z)
             {
                 targetTile = gridTiles[x, y, z - 1];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
                 {
                     baseTile.AddNeighbours(targetTile);
                     targetTile.AddNeighbours(baseTile);
+                }
+                if (fullSearch)
+                {
+                    targetTile = gridTiles[x, y, z + 1];
+                    if (targetTile.Type != GridTile.BlockType.EMPTY)
+                    {
+                        baseTile.AddNeighbours(targetTile);
+                        targetTile.AddNeighbours(baseTile);
+                    }
                 }
             }
         }

@@ -2,9 +2,11 @@ using Grid;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
+using UnityEngine.Tilemaps;
 
 public class GridManager : MonoBehaviour
 {
@@ -26,11 +28,10 @@ public class GridManager : MonoBehaviour
     private RaycastHit hit;
     private PointerEventData pointerEventData;
 
-    [Header("Debug")]
     [SerializeField]
-    private Vector3Int tileCoordinates;
+    private bool debugNeighbours;
     [SerializeField]
-    private bool changeTileType;
+    private Vector3Int debugCoordinates;
 
     private void Awake()
     {
@@ -52,27 +53,68 @@ public class GridManager : MonoBehaviour
 
     private void Update()
     {
+        PlaceTile();
+        RemoveTile();
+
+        if (debugNeighbours)
+        {
+            debugNeighbours = false;
+            Debug.Log(gridLogic.GetTile(debugCoordinates).Neighbours.Count);
+        }
+    }
+
+    private void PlaceTile()
+    {
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mousePosition = Input.mousePosition;
             Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-            Debug.DrawRay(ray.origin, ray.direction * 1000, Color.red, 100f);
 
             if (Physics.Raycast(ray, out hit))
             {
-                // TO DO: this doesn't work atm, because the grid doesnt have colliders. TO DO: think of a solution without adding colliders to every tile
-                Debug.Log(hit.point);                
+                Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
+                coordinates = new Vector3Int(coordinates.x, coordinates.y, coordinates.z - 1);
+
+                if (coordinates.z < 0)
+                {
+                    Debug.LogWarning("Tile's can't be placed out of bounds!");
+                    return;
+                }
+
+                GridTile tile = gridLogic.GetTile(coordinates);
+
+                tile.ChangeType(GridTile.BlockType.LAVA);
+                gridLogic.CheckNeighbourTiles(coordinates.x, coordinates.y, coordinates.z, true);
+                CreateTileGameObject(coordinates.x, coordinates.y, coordinates.z, tile, 1f, gridMaterials[1]);
+                DestroyNeighbourTileGameObject(tile.Neighbours);
             }
         }
+    }
 
-        if (changeTileType)
+    private void RemoveTile()
+    {
+        if (Input.GetMouseButtonDown(1))
         {
-            changeTileType = false;
-            GridTile tile = gridLogic.GetTile(tileCoordinates);
-            //TO DO: remake the mesh of the neighbours
-            gridLogic.CheckNeighbourTiles(tileCoordinates.x, tileCoordinates.y, tileCoordinates.z);
-            Destroy(tile.GetTileGameObject());
-            CreateTileMesh(tileCoordinates.x, tileCoordinates.y, tileCoordinates.z, tile, 1f, gridMaterials[2]);
+            Vector2 mousePosition = Input.mousePosition;
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
+                GridTile tile = gridLogic.GetTile(coordinates);
+
+                tile.ChangeType(GridTile.BlockType.EMPTY);
+                Destroy(tile.GetTileGameObject());
+
+                //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
+                CreateNeighbourTileGameObject(tile.Neighbours);
+
+                for (int i = tile.Neighbours.Count - 1; i >= 0; i--)
+                {
+                    tile.Neighbours[i].RemoveNeighbours(tile);
+                    tile.RemoveNeighbours(tile.Neighbours[i]);
+                }
+            }
         }
     }
 
@@ -90,23 +132,48 @@ public class GridManager : MonoBehaviour
 
                     // if the tiles have 6 neighbours they can't be seen, so they shouldn't have a mesh
                     if (tile.Neighbours.Count < 6 && tile.Type != GridTile.BlockType.EMPTY)
-                        CreateTileMesh(x, y, z, tile, tileSize, gridMaterials[1]);
+                        CreateTileGameObject(x, y, z, tile, tileSize, gridMaterials[1]);
                 }
             }
         }
     }
 
-    private void CreateTileMesh(int x, int y, int z, GridTile tile, float tileSize, Material tileMaterial)
+    private void CreateTileGameObject(int x, int y, int z, GridTile tile, float tileSize, Material tileMaterial)
     {
-        GameObject Tile = new GameObject("Tile (" + x + ", " + y + ", " + z + ")");
-        Tile.transform.parent = gridParent.transform;
-        Tile.transform.position = new Vector3(x * tileSize, y * tileSize, z * tileSize);
-        Tile.transform.localScale = new Vector3(tileSize, tileSize, 1);
+        GameObject TileGameObject = new GameObject("Tile (" + x + ", " + y + ", " + z + ")");
+        TileGameObject.transform.parent = gridParent.transform;
+        TileGameObject.transform.position = new Vector3(x * tileSize, y * tileSize, z * tileSize);
+        TileGameObject.transform.localScale = new Vector3(tileSize, tileSize, 1);
+        tile.SetTileGameObject(TileGameObject);
 
-        tile.SetTileGameObject(Tile);
+        CreateTileMesh(TileGameObject, tile, tileMaterial);
+        CreateTileCollider(TileGameObject);
+    }
 
-        MeshFilter meshFilter = Tile.AddComponent<MeshFilter>();
-        MeshRenderer meshRenderer = Tile.AddComponent<MeshRenderer>();
+    //Destroys the gameobjects of tiles that are surrounded
+    private void DestroyNeighbourTileGameObject(List<GridTile> tiles)
+    {
+        foreach (GridTile tile in tiles)
+        {
+            if (tile.Neighbours.Count == 6)
+                Destroy(tile.GetTileGameObject());
+        }
+    }
+
+    private void CreateNeighbourTileGameObject(List<GridTile> tiles)
+    {
+        foreach (GridTile tile in tiles)
+        {
+            if (tile.Neighbours.Count == 6)
+                CreateTileGameObject(tile.Position.x, tile.Position.y, tile.Position.z, tile, 1f, gridMaterials[1]);
+        }
+    }
+
+
+    private void CreateTileMesh(GameObject TileGameObject, GridTile tile, Material tileMaterial)
+    {
+        MeshFilter meshFilter = TileGameObject.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = TileGameObject.AddComponent<MeshRenderer>();
 
         Mesh mesh = new Mesh { name = "TileMesh" };
 
@@ -145,6 +212,11 @@ public class GridManager : MonoBehaviour
         //TO DO: This is just for debugging, remove when not needed
         GameObject NeighbourCounter = new GameObject();
         NeighbourCounter.name = "neighbour amount: " + tile.Neighbours.Count;
-        NeighbourCounter.transform.parent = Tile.transform;
+        NeighbourCounter.transform.parent = TileGameObject.transform;
+    }
+
+    private void CreateTileCollider(GameObject TileGameObject)
+    {
+        TileGameObject.AddComponent<BoxCollider>();
     }
 }

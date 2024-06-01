@@ -10,7 +10,6 @@ public class GridTile
     private Vector3Int position;
     private Vector3Int worldPosition;
     private BlockType type;
-    private Material material;
 
     private List<GridTile> neighbours = new List<GridTile>();
 
@@ -41,7 +40,7 @@ public class GridTile
     {
         if (neighbours.Contains(tile))
             neighbours.Remove(tile);
-    } 
+    }
 
     public void RemoveTile()
     {
@@ -74,11 +73,8 @@ public class GridTile
         prefab.transform.position = new Vector3(position.x * cellSize + cellSize * .5f, position.y * cellSize + cellSize * .5f, prefab.transform.position.z);
     }
 
-    public void ChangeType(BlockType type, Material material)
+    public void ChangeType(BlockType type)
     {
         this.type = type;
-        this.material = material;
-        this.material.color = Color.blue;
-        tileGameObject.GetComponent<MeshRenderer>().material = material;
     }
 }

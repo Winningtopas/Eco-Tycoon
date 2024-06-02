@@ -34,12 +34,6 @@ public class GridVisual : MonoBehaviour
     private void Start()
     {
         Spawn(gridSpreadPosition);
-
-        List<Vector3Int> emptyList = new List<Vector3Int>
-        {
-            new Vector3Int(0, 0, 5)
-        };
-        HighlightTiles(emptyList);
     }
 
     public void Spawn(Vector3 startPosition)
@@ -88,15 +82,6 @@ public class GridVisual : MonoBehaviour
                 material.SetInt("_HighlightIsActive", 0); // 0 inactive, 1 active
             }
             return;
-        }
-
-        // The arrays in the shader require a specifc length that's always matched, so we always use a list of 100 items
-        if(highlightPositions.Count < 100)
-        {
-            for(int i = highlightPositions.Count; i < 100; i++)
-            {
-                highlightPositions.Add(new Vector3Int(1000000, 1000000, 1000000));
-            }
         }
 
         List<float> highlightPositionsX = new List<float>();

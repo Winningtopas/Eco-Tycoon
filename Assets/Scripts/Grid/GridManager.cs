@@ -75,26 +75,63 @@ public class GridManager : MonoBehaviour
             Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
             List<Vector3Int> coordinatesList = new List<Vector3Int>();
 
+            int highestZPosition = -10000;
+            int lowestZPosition = 10000;
+
             for (int x = 0; x < selectionSize; x++)
             {
                 for (int y = 0; y < selectionSize; y++)
                 {
-                    coordinatesList.Add(new Vector3Int(coordinates.x + x, coordinates.y + y, coordinates.z));
+                    // -100 on the z so we can raycast down to find the lowest tile
+                    Vector3Int newPosition = new Vector3Int(coordinates.x + x, coordinates.y + y, coordinates.z - 100);
+
+                    RaycastHit bottomTileHit = new RaycastHit();
+                    Debug.DrawRay(new Vector3(newPosition.x + 0.5f, newPosition.y + 0.5f, newPosition.z), new Vector3(0.5f, 0.5f, newPosition.z), Color.red, 1f);
+
+                    if (Physics.Raycast(new Vector3(newPosition.x + 0.5f, newPosition.y + 0.5f, newPosition.z), new Vector3(0.5f, 0.5f, 1000), out bottomTileHit))
+                    {
+                        Vector3Int lowestCoordinates = Vector3Int.FloorToInt(bottomTileHit.point);
+                        newPosition = lowestCoordinates;
+
+                        if (lowestCoordinates.z > highestZPosition)
+                            highestZPosition = lowestCoordinates.z;
+
+                        if (lowestCoordinates.z < lowestZPosition)
+                            lowestZPosition = lowestCoordinates.z;
+                    }
+                    coordinatesList.Add(newPosition);
                 }
             }
 
             gridVisual.HighlightTiles(coordinatesList);
 
+            // Remove all tiles that aren't on the highest floor (the bottom) from the list 
+            List<Vector3Int> highestCoordinatesList = new List<Vector3Int>(coordinatesList);
+            for (int i = highestCoordinatesList.Count - 1; i >= 0; i--)
+            {
+                if (highestCoordinatesList[i].z < highestZPosition)
+                    highestCoordinatesList.RemoveAt(i);
+            }
+
+            // Remove all tiles that aren't on the lowest floor (the top) from the list 
+            List<Vector3Int> lowestCoordinatesList = new List<Vector3Int>(coordinatesList);
+
+            for (int i = lowestCoordinatesList.Count - 1; i >= 0; i--)
+            {
+                if (lowestCoordinatesList[i].z > lowestZPosition)
+                    lowestCoordinatesList.RemoveAt(i);
+            }
+
             if (Input.GetMouseButtonDown(0))
-                PlaceTile(coordinatesList);
+                PlaceTile(highestCoordinatesList);
             else if (Input.GetMouseButtonDown(1))
-                RemoveTile(coordinates);
+                RemoveTile(lowestCoordinatesList);
         }
     }
 
     private void PlaceTile(List<Vector3Int> coordinatesList)
     {
-        for (int i = 0; i < selectionSize * selectionSize; i++)
+        for (int i = 0; i < coordinatesList.Count; i++)
         {
             // -1 on the z, because the tile needs to be placed with an offset.
             coordinatesList[i] = new Vector3Int(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z - 1);
@@ -104,35 +141,39 @@ public class GridManager : MonoBehaviour
                 Debug.LogWarning("Tile's can't be placed out of bounds!");
                 break;
             }
+            else
+            {
+                GridTile tile = gridLogic.GetTile(coordinatesList[i]);
 
-            GridTile tile = gridLogic.GetTile(coordinatesList[i]);
-
-            Debug.Log("tile type " + tile.Type.ToString());
-            // Happens when the user clicks on a tile underneath another tile
-            if (tile.Type != GridTile.BlockType.EMPTY)
-                break;
-
-            tile.ChangeType(GridTile.BlockType.NORMAL);
-            gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
-            CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridMaterials[1]);
-            DestroyNeighbourTileGameObject(tile.Neighbours);
+                // Happens when the user clicks on a tile underneath another tile
+                if (tile.Type == GridTile.BlockType.EMPTY)
+                {
+                    tile.ChangeType(GridTile.BlockType.NORMAL);
+                    gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
+                    CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridMaterials[1]);
+                    DestroyNeighbourTileGameObject(tile.Neighbours);
+                }
+            }
         }
     }
 
-    private void RemoveTile(Vector3Int coordinates)
+    private void RemoveTile(List<Vector3Int> coordinatesList)
     {
-        GridTile tile = gridLogic.GetTile(coordinates);
-
-        tile.ChangeType(GridTile.BlockType.EMPTY);
-        Destroy(tile.GetTileGameObject());
-
-        //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
-        CreateNeighbourTileGameObject(tile.Neighbours);
-
-        for (int i = tile.Neighbours.Count - 1; i >= 0; i--)
+        for (int i = 0; i < coordinatesList.Count; i++)
         {
-            tile.Neighbours[i].RemoveNeighbours(tile);
-            tile.RemoveNeighbours(tile.Neighbours[i]);
+            GridTile tile = gridLogic.GetTile(coordinatesList[i]);
+
+            tile.ChangeType(GridTile.BlockType.EMPTY);
+            Destroy(tile.GetTileGameObject());
+
+            //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
+            CreateNeighbourTileGameObject(tile.Neighbours);
+
+            for (int j = tile.Neighbours.Count - 1; j >= 0; j--)
+            {
+                tile.Neighbours[j].RemoveNeighbours(tile);
+                tile.RemoveNeighbours(tile.Neighbours[j]);
+            }
         }
     }
 

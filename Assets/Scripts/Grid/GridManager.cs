@@ -29,6 +29,7 @@ public class GridManager : MonoBehaviour
     private Camera mainCamera;
     private RaycastHit hit;
     private PointerEventData pointerEventData;
+    private int selectionSize = 4;
 
     [SerializeField]
     private bool debugNeighbours;
@@ -72,35 +73,50 @@ public class GridManager : MonoBehaviour
         if (Physics.Raycast(ray, out hit))
         {
             Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
+            List<Vector3Int> coordinatesList = new List<Vector3Int>();
 
-            List<Vector3Int> coordinatesList = new List<Vector3Int> { coordinates };
+            for (int x = 0; x < selectionSize; x++)
+            {
+                for (int y = 0; y < selectionSize; y++)
+                {
+                    coordinatesList.Add(new Vector3Int(coordinates.x + x, coordinates.y + y, coordinates.z));
+                }
+            }
+
             gridVisual.HighlightTiles(coordinatesList);
 
             if (Input.GetMouseButtonDown(0))
-                PlaceTile(new Vector3Int(coordinates.x, coordinates.y, coordinates.z - 1));
+                PlaceTile(coordinatesList);
             else if (Input.GetMouseButtonDown(1))
                 RemoveTile(coordinates);
         }
     }
 
-    private void PlaceTile(Vector3Int coordinates)
+    private void PlaceTile(List<Vector3Int> coordinatesList)
     {
-        if (coordinates.z < 0)
+        for (int i = 0; i < selectionSize * selectionSize; i++)
         {
-            Debug.LogWarning("Tile's can't be placed out of bounds!");
-            return;
+            // -1 on the z, because the tile needs to be placed with an offset.
+            coordinatesList[i] = new Vector3Int(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z - 1);
+
+            if (coordinatesList[i].z < 0)
+            {
+                Debug.LogWarning("Tile's can't be placed out of bounds!");
+                break;
+            }
+
+            GridTile tile = gridLogic.GetTile(coordinatesList[i]);
+
+            Debug.Log("tile type " + tile.Type.ToString());
+            // Happens when the user clicks on a tile underneath another tile
+            if (tile.Type != GridTile.BlockType.EMPTY)
+                break;
+
+            tile.ChangeType(GridTile.BlockType.NORMAL);
+            gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
+            CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridMaterials[1]);
+            DestroyNeighbourTileGameObject(tile.Neighbours);
         }
-
-        GridTile tile = gridLogic.GetTile(coordinates);
-
-        // Happens when the user clicks on a tile underneath another tile
-        if (tile.Type != GridTile.BlockType.EMPTY)
-            return;
-
-        tile.ChangeType(GridTile.BlockType.NORMAL);
-        gridLogic.CheckNeighbourTiles(coordinates.x, coordinates.y, coordinates.z, true);
-        CreateTileGameObject(coordinates.x, coordinates.y, coordinates.z, tile, 1f, gridMaterials[1]);
-        DestroyNeighbourTileGameObject(tile.Neighbours);
     }
 
     private void RemoveTile(Vector3Int coordinates)

@@ -56,10 +56,10 @@ Shader "Custom/Grid"
 				float4 _HighlightColour;
 
 				int _HighlightIsActive = 0; // 0 inactive, 1 active
-				int _HighlightPositionsCount = 100;
-				float _HighlightPositionsX[100];
-				float _HighlightPositionsY[100];
-				float _HighlightPositionsZ[100];
+				int _HighlightPositionsCount = 400;
+				float _HighlightPositionsX[400];
+				float _HighlightPositionsY[400];
+				float _HighlightPositionsZ[400];
 
 				float _GridThickness;
 				int _GridAreaSize;

@@ -67,6 +67,8 @@ public class GridManager : MonoBehaviour
 
     private void HoverOnTile()
     {
+        ModifySelectionArea();
+
         Vector2 mousePosition = Input.mousePosition;
         Ray ray = mainCamera.ScreenPointToRay(mousePosition);
 
@@ -129,8 +131,18 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    private void ModifySelectionArea()
+    {
+        selectionSize += (int)Math.Round(Input.mouseScrollDelta.y);
+        if (selectionSize <= 0)
+            selectionSize = 1;
+        else if (selectionSize >= 20)
+            selectionSize = 20;
+    }
+
     private void PlaceTile(List<Vector3Int> coordinatesList)
     {
+        Debug.Log("1: coordinatesList: " + coordinatesList.Count);
         for (int i = 0; i < coordinatesList.Count; i++)
         {
             // -1 on the z, because the tile needs to be placed with an offset.
@@ -143,6 +155,7 @@ public class GridManager : MonoBehaviour
             }
             else
             {
+                Debug.Log("2: coordinatesList: " + coordinatesList.Count);
                 GridTile tile = gridLogic.GetTile(coordinatesList[i]);
 
                 // Happens when the user clicks on a tile underneath another tile

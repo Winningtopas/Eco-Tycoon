@@ -73,15 +73,24 @@ public class GridVisual : MonoBehaviour
         return 1 - Mathf.Sqrt(1 - Mathf.Pow(x, 4));
     }
 
-    public void HighlightTiles(List<Vector3Int> highlightPositions)
+    public void HighlightTiles(List<Vector3Int> tilePositions)
     {
-        if(highlightPositions.Count == 0)
+        List<Vector3Int> highlightPositions = new List<Vector3Int>(tilePositions);
+        if (highlightPositions.Count == 0)
         {
             foreach (Material material in gridMaterials)
             {
                 material.SetInt("_HighlightIsActive", 0); // 0 inactive, 1 active
             }
             return;
+        }
+
+        if (highlightPositions.Count < 400)
+        {
+            for (int i = highlightPositions.Count; i < 400; i++)
+            {
+                highlightPositions.Add(new Vector3Int(10000000, 10000000, 10000000));
+            }
         }
 
         List<float> highlightPositionsX = new List<float>();

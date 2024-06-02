@@ -142,7 +142,6 @@ public class GridManager : MonoBehaviour
 
     private void PlaceTile(List<Vector3Int> coordinatesList)
     {
-        Debug.Log("1: coordinatesList: " + coordinatesList.Count);
         for (int i = 0; i < coordinatesList.Count; i++)
         {
             // -1 on the z, because the tile needs to be placed with an offset.
@@ -155,7 +154,6 @@ public class GridManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("2: coordinatesList: " + coordinatesList.Count);
                 GridTile tile = gridLogic.GetTile(coordinatesList[i]);
 
                 // Happens when the user clicks on a tile underneath another tile

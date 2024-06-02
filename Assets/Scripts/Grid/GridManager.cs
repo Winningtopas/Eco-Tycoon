@@ -17,6 +17,8 @@ public class GridManager : MonoBehaviour
     [SerializeField]
     private List<Material> gridMaterials = new List<Material>();
     private GridLogic gridLogic;
+    [SerializeField]
+    private GridVisual gridVisual;
     private GameObject gridParent;
 
     private Vector3Int gridSize = new Vector3Int(100, 100, 10);
@@ -53,8 +55,7 @@ public class GridManager : MonoBehaviour
 
     private void Update()
     {
-        PlaceTile();
-        RemoveTile();
+        HoverOnTile();
 
         if (debugNeighbours)
         {
@@ -63,58 +64,59 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private void PlaceTile()
+    private void HoverOnTile()
     {
-        if (Input.GetMouseButtonDown(0))
+        Vector2 mousePosition = Input.mousePosition;
+        Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+
+        if (Physics.Raycast(ray, out hit))
         {
-            Vector2 mousePosition = Input.mousePosition;
-            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
 
-            if (Physics.Raycast(ray, out hit))
-            {
-                Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
-                coordinates = new Vector3Int(coordinates.x, coordinates.y, coordinates.z - 1);
+            List<Vector3Int> coordinatesList = new List<Vector3Int> { coordinates };
+            gridVisual.HighlightTiles(coordinatesList);
 
-                if (coordinates.z < 0)
-                {
-                    Debug.LogWarning("Tile's can't be placed out of bounds!");
-                    return;
-                }
-
-                GridTile tile = gridLogic.GetTile(coordinates);
-
-                tile.ChangeType(GridTile.BlockType.LAVA);
-                gridLogic.CheckNeighbourTiles(coordinates.x, coordinates.y, coordinates.z, true);
-                CreateTileGameObject(coordinates.x, coordinates.y, coordinates.z, tile, 1f, gridMaterials[1]);
-                DestroyNeighbourTileGameObject(tile.Neighbours);
-            }
+            if (Input.GetMouseButtonDown(0))
+                PlaceTile(new Vector3Int(coordinates.x, coordinates.y, coordinates.z - 1));
+            else if (Input.GetMouseButtonDown(1))
+                RemoveTile(coordinates);
         }
     }
 
-    private void RemoveTile()
+    private void PlaceTile(Vector3Int coordinates)
     {
-        if (Input.GetMouseButtonDown(1))
+        if (coordinates.z < 0)
         {
-            Vector2 mousePosition = Input.mousePosition;
-            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            Debug.LogWarning("Tile's can't be placed out of bounds!");
+            return;
+        }
 
-            if (Physics.Raycast(ray, out hit))
-            {
-                Vector3Int coordinates = Vector3Int.FloorToInt(hit.point);
-                GridTile tile = gridLogic.GetTile(coordinates);
+        GridTile tile = gridLogic.GetTile(coordinates);
 
-                tile.ChangeType(GridTile.BlockType.EMPTY);
-                Destroy(tile.GetTileGameObject());
+        // Happens when the user clicks on a tile underneath another tile
+        if (tile.Type != GridTile.BlockType.EMPTY)
+            return;
 
-                //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
-                CreateNeighbourTileGameObject(tile.Neighbours);
+        tile.ChangeType(GridTile.BlockType.NORMAL);
+        gridLogic.CheckNeighbourTiles(coordinates.x, coordinates.y, coordinates.z, true);
+        CreateTileGameObject(coordinates.x, coordinates.y, coordinates.z, tile, 1f, gridMaterials[1]);
+        DestroyNeighbourTileGameObject(tile.Neighbours);
+    }
 
-                for (int i = tile.Neighbours.Count - 1; i >= 0; i--)
-                {
-                    tile.Neighbours[i].RemoveNeighbours(tile);
-                    tile.RemoveNeighbours(tile.Neighbours[i]);
-                }
-            }
+    private void RemoveTile(Vector3Int coordinates)
+    {
+        GridTile tile = gridLogic.GetTile(coordinates);
+
+        tile.ChangeType(GridTile.BlockType.EMPTY);
+        Destroy(tile.GetTileGameObject());
+
+        //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
+        CreateNeighbourTileGameObject(tile.Neighbours);
+
+        for (int i = tile.Neighbours.Count - 1; i >= 0; i--)
+        {
+            tile.Neighbours[i].RemoveNeighbours(tile);
+            tile.RemoveNeighbours(tile.Neighbours[i]);
         }
     }
 

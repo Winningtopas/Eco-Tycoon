@@ -59,6 +59,7 @@ Shader "Custom/Grid"
 				int _HighlightPositionsCount = 100;
 				float _HighlightPositionsX[100];
 				float _HighlightPositionsY[100];
+				float _HighlightPositionsZ[100];
 
 				float _GridThickness;
 				int _GridAreaSize;
@@ -85,7 +86,7 @@ Shader "Custom/Grid"
 					fixed4 gridColour = tex2D(_MainTex, i.uv) * _BaseColour;
 
 					float3 absoluteWorldPosition = i.worldPos + _GridPositionOrigin;
-					float2 highlightPosition;
+					float3 highlightPosition;
 
 					float gridAreaSize = _GridAreaSize;
 					float gridThickness = _GridThickness;
@@ -108,13 +109,17 @@ Shader "Custom/Grid"
 					{
 						for (int j = 0; j < _HighlightPositionsCount; j++)
 						{
-							highlightPosition = float2(_HighlightPositionsX[j], _HighlightPositionsY[j]);
+							highlightPosition = float3(_HighlightPositionsX[j], _HighlightPositionsY[j], _HighlightPositionsZ[j]);
 
 							if (absoluteWorldPosition.x >= highlightPosition.x && absoluteWorldPosition.x <= highlightPosition.x + 1)
 							{
 								if (absoluteWorldPosition.y >= highlightPosition.y && absoluteWorldPosition.y <= highlightPosition.y + 1)
 								{
-									gridColour.rgb = lerp(gridColour.xyz, _HighlightColour.rgb, _HighlightColour.a * _HighlightColour.a); // lerp with the previous color and take into account the layer color opacity
+									if (absoluteWorldPosition.z >= highlightPosition.z && absoluteWorldPosition.z <= highlightPosition.z + .001f)
+									{
+										// lerp with the previous color and take into account the layer color opacity
+										gridColour.rgb = lerp(gridColour.xyz, _HighlightColour.rgb, _HighlightColour.a * _HighlightColour.a);
+									}
 								}
 							}
 						}
@@ -137,7 +142,7 @@ Shader "Custom/Grid"
 					}
 				return float4(gridColour);
 				}
-					ENDCG
+				ENDCG
 			}
 		}
 }

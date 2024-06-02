@@ -67,7 +67,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _GridAreaSize: 110
-    - _GridAreaVisibleArea: 500
+    - _GridAreaVisibleArea: 0.13673306
     - _GridLineThickness: 0.003
     - _GridSize: 0.1
     - _GridThickness: 0.05
@@ -87,7 +87,7 @@ Material:
     - _Color: {r: 0.35292807, g: 0.790342, b: 0.9716981, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GridColour: {r: 1, g: 1, b: 1, a: 0.39215687}
-    - _GridPositionOrigin: {r: 6.5, g: 4.5, b: 0, a: 0}
+    - _GridPositionOrigin: {r: 0, g: 0, b: 0, a: 0}
     - _HighlightColour: {r: 0, g: 0.154203, b: 7.129739, a: 0.73333335}
     - _Test1: {r: 0.255, g: 0, b: 0, a: 1}
     - _Test2: {r: 0.255, g: 0, b: 0, a: 1}

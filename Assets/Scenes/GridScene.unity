@@ -357,6 +357,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1833136341}
   - component: {fileID: 1833136340}
+  - component: {fileID: 1833136342}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -382,6 +383,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 1bdb9afc90a53e6499b4c1359b1ae143, type: 2}
   - {fileID: 2100000, guid: 3297e7b87fcd8984693fdfecc9cdd5b5, type: 2}
   - {fileID: 2100000, guid: a01d3395c01b5f74f88f5d6f07c73ed6, type: 2}
+  gridVisual: {fileID: 1833136342}
   mainCamera: {fileID: 1560818160}
   debugNeighbours: 0
   debugCoordinates: {x: 1, y: 0, z: 5}
@@ -400,3 +402,23 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1833136342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1833136339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 923c12449e5a7b840bd6b6d97e9ad819, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridMaterials:
+  - {fileID: 2100000, guid: 4dc2859b0827d6a4c8a2b9bb366ea937, type: 2}
+  - {fileID: 2100000, guid: 8bb3b90cde0876841a52e74e193dfa26, type: 2}
+  - {fileID: 2100000, guid: 1bdb9afc90a53e6499b4c1359b1ae143, type: 2}
+  - {fileID: 2100000, guid: 3297e7b87fcd8984693fdfecc9cdd5b5, type: 2}
+  - {fileID: 2100000, guid: a01d3395c01b5f74f88f5d6f07c73ed6, type: 2}
+  gridSpreadPosition: {x: 0, y: 0, z: 0}
+  highlightPositions: []

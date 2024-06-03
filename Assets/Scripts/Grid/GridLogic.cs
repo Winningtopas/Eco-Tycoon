@@ -25,7 +25,6 @@ namespace Grid
             for (int i = 1; i < gridMaterials.Count + 1; i++)
             {
                 materialDictionary.Add((BlockType)i, gridMaterials[i - 1]);
-                Debug.Log(gridMaterials[i - 1].ToString());
             }
 
             this.dimensions = dimensions;

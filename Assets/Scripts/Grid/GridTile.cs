@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Grid;
+using Newtonsoft.Json.Linq;
 
 public class GridTile
 {
-    public enum BlockType { EMPTY, NORMAL, WATER, LAVA, SWAMP, HIGHLIGHT };
+    public enum BlockType { EMPTY, NORMAL, WATER, LAVA, SWAMP, SAND};
 
     private Vector3Int position;
     private Vector3Int worldPosition;

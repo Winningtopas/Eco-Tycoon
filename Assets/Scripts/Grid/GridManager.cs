@@ -21,7 +21,7 @@ public class GridManager : MonoBehaviour
     private GridVisual gridVisual;
     private GameObject gridParent;
 
-    private Vector3Int gridSize = new Vector3Int(100, 100, 10);
+    private Vector3Int gridSize = new Vector3Int(100, 100, 20);
     private float tileSize = 1f;
 
     // Mouse selection
@@ -30,6 +30,8 @@ public class GridManager : MonoBehaviour
     private RaycastHit hit;
     private PointerEventData pointerEventData;
     private int selectionSize = 4;
+    [SerializeField]
+    private GridTile.BlockType currentBlockType = GridTile.BlockType.NORMAL;
 
     [SerializeField]
     private bool debugNeighbours;
@@ -56,6 +58,7 @@ public class GridManager : MonoBehaviour
 
     private void Update()
     {
+        SwitchMaterial();
         HoverOnTile();
 
         if (debugNeighbours)
@@ -63,6 +66,20 @@ public class GridManager : MonoBehaviour
             debugNeighbours = false;
             Debug.Log(gridLogic.GetTile(debugCoordinates).Neighbours.Count);
         }
+    }
+
+    private void SwitchMaterial()
+    {
+        if (Input.GetKeyDown("1"))
+            currentBlockType = (GridTile.BlockType)1;
+        if (Input.GetKeyDown("2"))
+            currentBlockType = (GridTile.BlockType)2;
+        if (Input.GetKeyDown("3"))
+            currentBlockType = (GridTile.BlockType)3;
+        if (Input.GetKeyDown("4"))
+            currentBlockType = (GridTile.BlockType)4;
+        if (Input.GetKeyDown("5"))
+            currentBlockType = (GridTile.BlockType)5;
     }
 
     private void HoverOnTile()
@@ -159,9 +176,9 @@ public class GridManager : MonoBehaviour
                 // Happens when the user clicks on a tile underneath another tile
                 if (tile.Type == GridTile.BlockType.EMPTY)
                 {
-                    tile.ChangeType(GridTile.BlockType.NORMAL);
+                    tile.ChangeType(currentBlockType);
                     gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
-                    CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridMaterials[1]);
+                    CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridLogic.GetTileMaterial(currentBlockType));
                     DestroyNeighbourTileGameObject(tile.Neighbours);
                 }
             }
@@ -202,7 +219,7 @@ public class GridManager : MonoBehaviour
 
                     // if the tiles have 6 neighbours they can't be seen, so they shouldn't have a mesh
                     if (tile.Neighbours.Count < 6 && tile.Type != GridTile.BlockType.EMPTY)
-                        CreateTileGameObject(x, y, z, tile, tileSize, gridMaterials[1]);
+                        CreateTileGameObject(x, y, z, tile, tileSize, gridLogic.GetTileMaterial(tile.Type));
                 }
             }
         }
@@ -235,7 +252,7 @@ public class GridManager : MonoBehaviour
         foreach (GridTile tile in tiles)
         {
             if (tile.Neighbours.Count == 6)
-                CreateTileGameObject(tile.Position.x, tile.Position.y, tile.Position.z, tile, 1f, gridMaterials[1]);
+                CreateTileGameObject(tile.Position.x, tile.Position.y, tile.Position.z, tile, 1f, gridLogic.GetTileMaterial(tile.Type));
         }
     }
 

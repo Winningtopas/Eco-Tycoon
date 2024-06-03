@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Empty
+  m_Name: SwampOld
   m_Shader: {fileID: 4800000, guid: c4ee6f1d9d8e7f24eb375324414aae73, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
@@ -83,8 +83,8 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColour: {r: 0, g: 0, b: 0, a: 1}
-    - _Color: {r: 0, g: 0, b: 0, a: 0.11764706}
+    - _BaseColour: {r: 0.038981833, g: 0.11320752, b: 0.040943734, a: 1}
+    - _Color: {r: 0.16064437, g: 0.3584906, b: 0.16232687, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GridColour: {r: 1, g: 1, b: 1, a: 0.39215687}
     - _GridPositionOrigin: {r: 0, g: 0, b: 0, a: 0}

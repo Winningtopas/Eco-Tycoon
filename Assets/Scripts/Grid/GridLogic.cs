@@ -1,9 +1,11 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static GridTile;
 
 namespace Grid
 {
@@ -13,11 +15,19 @@ namespace Grid
         private float tileSize;
         private Vector3 originPosition;
         private List<Material> gridMaterials;
+        Dictionary<BlockType, Material> materialDictionary = new Dictionary<BlockType, Material>();
 
         private GridTile[,,] gridTiles;
 
         public GridLogic(Vector3Int dimensions, float tileSize, Vector3 originPosition, List<Material> gridMaterials)
         {
+            // Start from 1 higher to skip the Empty tile type
+            for (int i = 1; i < gridMaterials.Count + 1; i++)
+            {
+                materialDictionary.Add((BlockType)i, gridMaterials[i - 1]);
+                Debug.Log(gridMaterials[i - 1].ToString());
+            }
+
             this.dimensions = dimensions;
             this.tileSize = tileSize;
             this.originPosition = originPosition;
@@ -39,7 +49,7 @@ namespace Grid
                 }
             }
             DrawBoundingBox();
-       }
+        }
 
         private void DrawBoundingBox()
         {
@@ -94,7 +104,7 @@ namespace Grid
                     baseTile.AddNeighbours(targetTile);
                     targetTile.AddNeighbours(baseTile);
                 }
-                if(fullSearch)
+                if (fullSearch)
                 {
                     targetTile = gridTiles[x, y + 1, z];
                     if (targetTile.Type != GridTile.BlockType.EMPTY)
@@ -122,6 +132,12 @@ namespace Grid
                     }
                 }
             }
+        }
+
+        public Material GetTileMaterial(BlockType type)
+        {
+            Material tileMaterial = materialDictionary[type];
+            return tileMaterial;
         }
 
         public Vector3 GetWorldPosition(int x, int y, int z)

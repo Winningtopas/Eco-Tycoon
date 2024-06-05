@@ -67,7 +67,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _GridAreaSize: 1000
-    - _GridAreaVisibleArea: 500
+    - _GridAreaVisibleArea: NaN
     - _GridLineThickness: 0.003
     - _GridSize: 0.1
     - _GridThickness: 0.1

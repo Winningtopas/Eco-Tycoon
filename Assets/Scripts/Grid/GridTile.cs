@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Grid;
 using Newtonsoft.Json.Linq;
+using System;
 
 public class GridTile
 {
@@ -12,14 +13,16 @@ public class GridTile
     private Vector3Int worldPosition;
     private BlockType type;
 
-    private List<GridTile> neighbours = new List<GridTile>();
+    private GridTile[] neighbours = new GridTile[6];
+    private int neighbourCount;
 
     private GameObject tileGameObject;
     private GameObject entityPrefab;
 
     public Vector3Int Position => position;
     public Vector3Int WorldPosition => worldPosition;
-    public List<GridTile> Neighbours => neighbours;
+    public GridTile[] Neighbours => neighbours;
+    public int Neighbourcount => neighbourCount;
     public BlockType Type => type;
 
     public GridTile(Vector3Int position, float cellSize, BlockType type)
@@ -29,18 +32,56 @@ public class GridTile
         this.type = type;
     }
 
-    public void AddNeighbours(GridTile tile)
+    public void AddNeighbour(GridTile tile)
     {
-        if (neighbours.Contains(tile))
-            return;
+        int index = -1;
 
-        neighbours.Add(tile);
+        if(tile.position == new Vector3Int(position.x - 1, position.y, position.z))
+            index = 0;
+        if (tile.position == new Vector3Int(position.x + 1, position.y, position.z))
+            index = 1;
+        if (tile.position == new Vector3Int(position.x, position.y - 1, position.z))
+            index = 2;
+        if (tile.position == new Vector3Int(position.x, position.y + 1, position.z))
+            index = 3;
+        if (tile.position == new Vector3Int(position.x, position.y, position.z - 1))
+            index = 4;
+        if (tile.position == new Vector3Int(position.x, position.y, position.z + 1))
+            index = 5;
+
+        if (neighbours[index] == null)
+            neighbourCount++;
+        neighbours[index] = tile;
     }
+
+    //public void AddNeighbours(GridTile tile)
+    //{
+    //    if (neighbours.Contains(tile))
+    //        return;
+
+    //    neighbours.Add(tile);
+    //}
 
     public void RemoveNeighbours(GridTile tile)
     {
-        if (neighbours.Contains(tile))
-            neighbours.Remove(tile);
+        int index = -1;
+
+        if (tile.position == new Vector3Int(position.x - 1, position.y, position.z))
+            index = 0;
+        if (tile.position == new Vector3Int(position.x + 1, position.y, position.z))
+            index = 1;
+        if (tile.position == new Vector3Int(position.x, position.y - 1, position.z))
+            index = 2;
+        if (tile.position == new Vector3Int(position.x, position.y + 1, position.z))
+            index = 3;
+        if (tile.position == new Vector3Int(position.x, position.y, position.z - 1))
+            index = 4;
+        if (tile.position == new Vector3Int(position.x, position.y, position.z + 1))
+            index = 5;
+
+        if (neighbours[index] != null)
+            neighbourCount--;
+        neighbours[index] = null;
     }
 
     public void RemoveTile()

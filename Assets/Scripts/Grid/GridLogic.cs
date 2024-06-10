@@ -82,16 +82,16 @@ namespace Grid
                 targetTile = gridTiles[x - 1, y, z];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
                 {
-                    baseTile.AddNeighbours(targetTile);
-                    targetTile.AddNeighbours(baseTile);
+                    baseTile.AddNeighbour(targetTile);
+                    targetTile.AddNeighbour(baseTile);
                 }
                 if (fullSearch)
                 {
                     targetTile = gridTiles[x + 1, y, z];
                     if (targetTile.Type != GridTile.BlockType.EMPTY)
                     {
-                        baseTile.AddNeighbours(targetTile);
-                        targetTile.AddNeighbours(baseTile);
+                        baseTile.AddNeighbour(targetTile);
+                        targetTile.AddNeighbour(baseTile);
                     }
                 }
             }
@@ -100,16 +100,16 @@ namespace Grid
                 targetTile = gridTiles[x, y - 1, z];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
                 {
-                    baseTile.AddNeighbours(targetTile);
-                    targetTile.AddNeighbours(baseTile);
+                    baseTile.AddNeighbour(targetTile);
+                    targetTile.AddNeighbour(baseTile);
                 }
                 if (fullSearch)
                 {
                     targetTile = gridTiles[x, y + 1, z];
                     if (targetTile.Type != GridTile.BlockType.EMPTY)
                     {
-                        baseTile.AddNeighbours(targetTile);
-                        targetTile.AddNeighbours(baseTile);
+                        baseTile.AddNeighbour(targetTile);
+                        targetTile.AddNeighbour(baseTile);
                     }
                 }
             }
@@ -118,16 +118,16 @@ namespace Grid
                 targetTile = gridTiles[x, y, z - 1];
                 if (targetTile.Type != GridTile.BlockType.EMPTY)
                 {
-                    baseTile.AddNeighbours(targetTile);
-                    targetTile.AddNeighbours(baseTile);
+                    baseTile.AddNeighbour(targetTile);
+                    targetTile.AddNeighbour(baseTile);
                 }
                 if (fullSearch)
                 {
                     targetTile = gridTiles[x, y, z + 1];
                     if (targetTile.Type != GridTile.BlockType.EMPTY)
                     {
-                        baseTile.AddNeighbours(targetTile);
-                        targetTile.AddNeighbours(baseTile);
+                        baseTile.AddNeighbour(targetTile);
+                        targetTile.AddNeighbour(baseTile);
                     }
                 }
             }

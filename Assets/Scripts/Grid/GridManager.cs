@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
+using UnityEngine.WSA;
 
 public class GridManager : MonoBehaviour
 {
@@ -64,7 +65,7 @@ public class GridManager : MonoBehaviour
         if (debugNeighbours)
         {
             debugNeighbours = false;
-            Debug.Log(gridLogic.GetTile(debugCoordinates).Neighbours.Count);
+            //Debug.Log(gridLogic.GetTile(debugCoordinates).Neighbours.Count);
         }
     }
 
@@ -95,7 +96,7 @@ public class GridManager : MonoBehaviour
             List<Vector3Int> coordinatesList = new List<Vector3Int>();
 
             int highestZPosition = -10000;
-            int lowestZPosition = 10000;
+            int lowestZPosition = gridSize.z;
 
             for (int x = 0; x < selectionSize; x++)
             {
@@ -115,10 +116,11 @@ public class GridManager : MonoBehaviour
                         if (lowestCoordinates.z > highestZPosition)
                             highestZPosition = lowestCoordinates.z;
 
-                        if (lowestCoordinates.z < lowestZPosition)
+                        if (lowestCoordinates.z < lowestZPosition && lowestCoordinates.z < gridSize.z)
                             lowestZPosition = lowestCoordinates.z;
                     }
-                    coordinatesList.Add(newPosition);
+                    if (newPosition.z < gridSize.z && newPosition.z >= 0) // TO DO: check if '=' is needed
+                        coordinatesList.Add(newPosition);
                 }
             }
 
@@ -178,8 +180,12 @@ public class GridManager : MonoBehaviour
                 {
                     tile.ChangeType(currentBlockType);
                     gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
-                    CreateTileGameObject(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, tile, 1f, gridLogic.GetTileMaterial(currentBlockType));
-                    DestroyNeighbourTileGameObject(tile.Neighbours);
+
+                    // Destroy and recreate neighbours so that their meshes get updated
+                    DestroyNeighbourTileGameObject(tile);
+                    CreateNeighbourTileGameObject(tile);
+
+                    CreateTileGameObject(tile, 1f, gridLogic.GetTileMaterial(currentBlockType));
                 }
             }
         }
@@ -195,12 +201,19 @@ public class GridManager : MonoBehaviour
             Destroy(tile.GetTileGameObject());
 
             //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
-            CreateNeighbourTileGameObject(tile.Neighbours);
 
-            for (int j = tile.Neighbours.Count - 1; j >= 0; j--)
+            for (int j = tile.Neighbours.Length - 1; j >= 0; j--)
             {
-                tile.Neighbours[j].RemoveNeighbours(tile);
-                tile.RemoveNeighbours(tile.Neighbours[j]);
+                if (tile.Neighbours[j] != null)
+                {
+                    // Destroy neighbour tile -> Update the neighbour amount on the neighbour
+                    // -> Create neighbour tile -> remove the neighbour as reference from this tile
+                    if (tile.Neighbours[j].GetTileGameObject() != null)
+                        Destroy(tile.Neighbours[j].GetTileGameObject());
+                    tile.Neighbours[j].RemoveNeighbours(tile);
+                    CreateTileGameObject(tile.Neighbours[j], 1f, gridLogic.GetTileMaterial(tile.Neighbours[j].Type));
+                    tile.RemoveNeighbours(tile.Neighbours[j]);
+                }
             }
         }
     }
@@ -218,44 +231,44 @@ public class GridManager : MonoBehaviour
                     GridTile tile = gridLogic.GetTile(new Vector3Int(x, y, z));
 
                     // if the tiles have 6 neighbours they can't be seen, so they shouldn't have a mesh
-                    if (tile.Neighbours.Count < 6 && tile.Type != GridTile.BlockType.EMPTY)
-                        CreateTileGameObject(x, y, z, tile, tileSize, gridLogic.GetTileMaterial(tile.Type));
+                    //if (tile.Neighbours.Count < 6 && tile.Type != GridTile.BlockType.EMPTY)
+                    if (tile.Neighbourcount < 6 && tile.Type != GridTile.BlockType.EMPTY)
+                        CreateTileGameObject(tile, tileSize, gridLogic.GetTileMaterial(tile.Type));
                 }
             }
         }
     }
 
-    private void CreateTileGameObject(int x, int y, int z, GridTile tile, float tileSize, Material tileMaterial)
+    //Destroys the gameobjects of tiles that are surrounded
+    private void DestroyNeighbourTileGameObject(GridTile tile)
     {
-        GameObject TileGameObject = new GameObject("Tile (" + x + ", " + y + ", " + z + ")");
+        foreach (GridTile neighbour in tile.Neighbours)
+        {
+            if (neighbour != null)
+                Destroy(neighbour.GetTileGameObject());
+        }
+    }
+
+    private void CreateNeighbourTileGameObject(GridTile tile)
+    {
+        foreach (GridTile neighbour in tile.Neighbours)
+        {
+            if (neighbour != null)
+                CreateTileGameObject(neighbour, 1f, gridLogic.GetTileMaterial(neighbour.Type));
+        }
+    }
+
+    private void CreateTileGameObject(GridTile tile, float tileSize, Material tileMaterial)
+    {
+        GameObject TileGameObject = new GameObject("Tile (" + tile.Position.x + ", " + tile.Position.y + ", " + tile.Position.z + ")");
         TileGameObject.transform.parent = gridParent.transform;
-        TileGameObject.transform.position = new Vector3(x * tileSize, y * tileSize, z * tileSize);
+        TileGameObject.transform.position = new Vector3(tile.Position.x * tileSize, tile.Position.y * tileSize, tile.Position.z * tileSize);
         TileGameObject.transform.localScale = new Vector3(tileSize, tileSize, 1);
         tile.SetTileGameObject(TileGameObject);
 
         CreateTileMesh(TileGameObject, tile, tileMaterial);
         CreateTileCollider(TileGameObject);
     }
-
-    //Destroys the gameobjects of tiles that are surrounded
-    private void DestroyNeighbourTileGameObject(List<GridTile> tiles)
-    {
-        foreach (GridTile tile in tiles)
-        {
-            if (tile.Neighbours.Count == 6)
-                Destroy(tile.GetTileGameObject());
-        }
-    }
-
-    private void CreateNeighbourTileGameObject(List<GridTile> tiles)
-    {
-        foreach (GridTile tile in tiles)
-        {
-            if (tile.Neighbours.Count == 6)
-                CreateTileGameObject(tile.Position.x, tile.Position.y, tile.Position.z, tile, 1f, gridLogic.GetTileMaterial(tile.Type));
-        }
-    }
-
 
     private void CreateTileMesh(GameObject TileGameObject, GridTile tile, Material tileMaterial)
     {
@@ -275,21 +288,23 @@ public class GridManager : MonoBehaviour
             new Vector3 (0, 0, 1)
         };
 
-        mesh.triangles = new int[] {
-            0, 2, 1, //face front
-	        0, 3, 2,
-            2, 3, 4, //face top
-	        2, 4, 5,
-            1, 2, 5, //face right
-	        1, 5, 6,
-            0, 7, 4, //face left
-	        0, 4, 3,
-            5, 4, 7, //face back
-	        5, 7, 6,
-            0, 6, 7, //face bottom
-	        0, 1, 6
-        };
+        List<int> triangles = new List<int>();
 
+        // only draw faces that don't have a neighbour
+        if (tile.Neighbours[0] == null)
+            triangles.AddRange(new int[] { 0, 7, 4, 0, 4, 3 }); // left
+        if (tile.Neighbours[1] == null)
+            triangles.AddRange(new int[] { 1, 2, 5, 1, 5, 6 }); // right
+        if (tile.Neighbours[2] == null)
+            triangles.AddRange(new int[] { 0, 6, 7, 0, 1, 6 }); // front
+        if (tile.Neighbours[3] == null)
+            triangles.AddRange(new int[] { 2, 3, 4, 2, 4, 5 }); // back
+        if (tile.Neighbours[4] == null)
+            triangles.AddRange(new int[] { 0, 2, 1, 0, 3, 2 }); // above
+        if (tile.Neighbours[5] == null)
+            triangles.AddRange(new int[] { 5, 4, 7, 5, 7, 6 }); // below
+
+        mesh.triangles = triangles.ToArray();
         mesh.Optimize();
         mesh.RecalculateNormals();
 
@@ -298,7 +313,7 @@ public class GridManager : MonoBehaviour
 
         //TO DO: This is just for debugging, remove when not needed
         GameObject NeighbourCounter = new GameObject();
-        NeighbourCounter.name = "neighbour amount: " + tile.Neighbours.Count;
+        NeighbourCounter.name = "neighbour amount: " + tile.Neighbourcount;
         NeighbourCounter.transform.parent = TileGameObject.transform;
     }
 

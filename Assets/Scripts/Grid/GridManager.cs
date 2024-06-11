@@ -301,7 +301,7 @@ public class GridManager : MonoBehaviour
             triangles.AddRange(new int[] { 2, 3, 4, 2, 4, 5 }); // back
         if (tile.Neighbours[4] == null)
             triangles.AddRange(new int[] { 0, 2, 1, 0, 3, 2 }); // above
-        if (tile.Neighbours[5] == null)
+        if (tile.Neighbours[5] == null && tile.Position.z < gridSize.z - 1) // the lowest layer of tiles doesn't need a bottom face
             triangles.AddRange(new int[] { 5, 4, 7, 5, 7, 6 }); // below
 
         mesh.triangles = triangles.ToArray();

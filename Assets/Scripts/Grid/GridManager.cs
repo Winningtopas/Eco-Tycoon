@@ -2,6 +2,7 @@ using Grid;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -32,7 +33,8 @@ public class GridManager : MonoBehaviour
     private PointerEventData pointerEventData;
     private int selectionSize = 4;
     [SerializeField]
-    private GridTile.BlockType currentBlockType = GridTile.BlockType.NORMAL;
+    private GridTile.BlockType currentBlockType = GridTile.BlockType.GRASS;
+    private bool gridBuildMode = true;
 
     [SerializeField]
     private bool debugNeighbours;
@@ -71,6 +73,9 @@ public class GridManager : MonoBehaviour
 
     private void SwitchMaterial()
     {
+        if (Input.GetKeyDown("0"))
+            gridBuildMode = !gridBuildMode;
+
         if (Input.GetKeyDown("1"))
             currentBlockType = (GridTile.BlockType)1;
         if (Input.GetKeyDown("2"))
@@ -161,8 +166,12 @@ public class GridManager : MonoBehaviour
 
     private void PlaceTile(List<Vector3Int> coordinatesList)
     {
+        Vector3Int originalTileCoordinates = Vector3Int.zero;
+
         for (int i = 0; i < coordinatesList.Count; i++)
         {
+            originalTileCoordinates = coordinatesList[i];
+
             // -1 on the z, because the tile needs to be placed with an offset.
             coordinatesList[i] = new Vector3Int(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z - 1);
 
@@ -175,17 +184,32 @@ public class GridManager : MonoBehaviour
             {
                 GridTile tile = gridLogic.GetTile(coordinatesList[i]);
 
-                // Happens when the user clicks on a tile underneath another tile
-                if (tile.Type == GridTile.BlockType.EMPTY)
+                if (gridBuildMode)
                 {
-                    tile.ChangeType(currentBlockType);
-                    gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
+                    // Happens when the user clicks on a tile underneath another tile
+                    if (tile.Type == GridTile.BlockType.EMPTY)
+                    {
+                        tile.ChangeType(currentBlockType);
+                        gridLogic.CheckNeighbourTiles(coordinatesList[i].x, coordinatesList[i].y, coordinatesList[i].z, true);
 
-                    // Destroy and recreate neighbours so that their meshes get updated
-                    DestroyNeighbourTileGameObject(tile);
-                    CreateNeighbourTileGameObject(tile);
+                        // Destroy and recreate neighbours so that their meshes get updated
+                        DestroyNeighbourTileGameObject(tile);
+                        CreateNeighbourTileGameObject(tile);
 
-                    CreateTileGameObject(tile, 1f, gridLogic.GetTileMaterial(currentBlockType));
+                        CreateTileGameObject(tile, 1f, gridLogic.GetTileMaterial(currentBlockType));
+                    }
+                }
+                else // Place sidewalk
+                {
+                    GridTile originalTile = gridLogic.GetTile(originalTileCoordinates);
+
+                    if (!originalTile.HasOccupant)
+                    {
+                        GameObject sidewalk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        sidewalk.transform.position = new Vector3(coordinatesList[i].x + .5f, coordinatesList[i].y + .5f, coordinatesList[i].z + .9f);
+                        sidewalk.transform.localScale = new Vector3(1f, 1f, 0.1f);
+                        tile.SetOccupantGameObject(sidewalk);
+                    }
                 }
             }
         }
@@ -197,23 +221,32 @@ public class GridManager : MonoBehaviour
         {
             GridTile tile = gridLogic.GetTile(coordinatesList[i]);
 
-            tile.ChangeType(GridTile.BlockType.EMPTY);
-            Destroy(tile.GetTileGameObject());
-
-            //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
-
-            for (int j = tile.Neighbours.Length - 1; j >= 0; j--)
+            if (gridBuildMode)
             {
-                if (tile.Neighbours[j] != null)
+                tile.ChangeType(GridTile.BlockType.EMPTY);
+                Destroy(tile.GetTileGameObject());
+
+                //Now that this tile is deleted, tiles that were enclosed will be visible so they should get a gameobject.
+
+                for (int j = tile.Neighbours.Length - 1; j >= 0; j--)
                 {
-                    // Destroy neighbour tile -> Update the neighbour amount on the neighbour
-                    // -> Create neighbour tile -> remove the neighbour as reference from this tile
-                    if (tile.Neighbours[j].GetTileGameObject() != null)
-                        Destroy(tile.Neighbours[j].GetTileGameObject());
-                    tile.Neighbours[j].RemoveNeighbours(tile);
-                    CreateTileGameObject(tile.Neighbours[j], 1f, gridLogic.GetTileMaterial(tile.Neighbours[j].Type));
-                    tile.RemoveNeighbours(tile.Neighbours[j]);
+                    if (tile.Neighbours[j] != null)
+                    {
+                        // Destroy neighbour tile -> Update the neighbour amount on the neighbour
+                        // -> Create neighbour tile -> remove the neighbour as reference from this tile
+                        if (tile.Neighbours[j].GetTileGameObject() != null)
+                            Destroy(tile.Neighbours[j].GetTileGameObject());
+                        tile.Neighbours[j].RemoveNeighbours(tile);
+                        CreateTileGameObject(tile.Neighbours[j], 1f, gridLogic.GetTileMaterial(tile.Neighbours[j].Type));
+                        tile.RemoveNeighbours(tile.Neighbours[j]);
+                    }
+                
                 }
+            }
+            else
+            {
+                Destroy(tile.GetTileGameObject());
+                tile.RemoveOccupantGameObject();
             }
         }
     }

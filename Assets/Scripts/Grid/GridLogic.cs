@@ -40,7 +40,7 @@ namespace Grid
                 {
                     for (int z = 0; z < dimensions.z; z++)
                     {
-                        GridTile.BlockType type = z < dimensions.z - 5 ? GridTile.BlockType.EMPTY : type = GridTile.BlockType.NORMAL;
+                        GridTile.BlockType type = z < dimensions.z - 5 ? GridTile.BlockType.EMPTY : type = GridTile.BlockType.GRASS;
 
                         gridTiles[x, y, z] = new GridTile(new Vector3Int(x, y, z), tileSize, type);
                         CheckNeighbourTiles(x, y, z, false);

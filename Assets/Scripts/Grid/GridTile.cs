@@ -7,23 +7,27 @@ using System;
 
 public class GridTile
 {
-    public enum BlockType { EMPTY, NORMAL, WATER, LAVA, SWAMP, SAND};
+    public enum BlockType { EMPTY, GRASS, WATER, LAVA, SWAMP, SAND};
+    public enum StateOfMatter { SOLID, LIQUID, GAS, PLASMA};
 
     private Vector3Int position;
     private Vector3Int worldPosition;
     private BlockType type;
+    private bool hasOccupant;
 
     private GridTile[] neighbours = new GridTile[6];
     private int neighbourCount;
 
     private GameObject tileGameObject;
     private GameObject entityPrefab;
+    private GameObject occupantGameObject;
 
     public Vector3Int Position => position;
     public Vector3Int WorldPosition => worldPosition;
     public GridTile[] Neighbours => neighbours;
     public int Neighbourcount => neighbourCount;
     public BlockType Type => type;
+    public bool HasOccupant => hasOccupant;
 
     public GridTile(Vector3Int position, float cellSize, BlockType type)
     {
@@ -108,6 +112,10 @@ public class GridTile
     {
         return this.entityPrefab;
     }
+    public GameObject GetOccupantGameObject()
+    {
+        return this.tileGameObject;
+    }
 
     public void SetEntityPrefab(GameObject prefab, float cellSize)
     {
@@ -118,5 +126,20 @@ public class GridTile
     public void ChangeType(BlockType type)
     {
         this.type = type;
+    }
+
+    public void SetOccupantGameObject(GameObject gameObject)
+    {
+        if (hasOccupant)
+            return;
+
+        hasOccupant = true;
+        tileGameObject = gameObject;
+    }
+
+    public void RemoveOccupantGameObject()
+    {
+        tileGameObject = null;
+        hasOccupant = false;
     }
 }

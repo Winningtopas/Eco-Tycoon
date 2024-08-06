@@ -36,6 +36,9 @@ public class GridManager : MonoBehaviour
     private GridTile.BlockType currentBlockType = GridTile.BlockType.GRASS;
     private bool gridBuildMode = true;
 
+    // Sidewalk
+    private List<Vector3Int> sidewalkCoordinates = new List<Vector3Int>();
+
     [SerializeField]
     private bool debugNeighbours;
     [SerializeField]
@@ -206,6 +209,7 @@ public class GridManager : MonoBehaviour
                     if (!originalTile.HasOccupant)
                     {
                         GameObject sidewalk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        sidewalkCoordinates.Add(coordinatesList[i]);
                         sidewalk.transform.position = new Vector3(coordinatesList[i].x + .5f, coordinatesList[i].y + .5f, coordinatesList[i].z + .9f);
                         sidewalk.transform.localScale = new Vector3(1f, 1f, 0.1f);
                         tile.SetOccupantGameObject(sidewalk);
@@ -245,6 +249,7 @@ public class GridManager : MonoBehaviour
             }
             else
             {
+                sidewalkCoordinates.Remove(coordinatesList[i]);
                 Destroy(tile.GetTileGameObject());
                 tile.RemoveOccupantGameObject();
             }
